@@ -8,19 +8,18 @@ def split_function(elements):
     return elements.split(',')
 
 def filterCountryData(elements):
-    return elements[8]=='US'
+    return elements[8]=='IN'
 
 def groupByDept(elements):
     return (elements[7],1)
 
-pipeline1=beam.Pipeline()
-pcolletion=(
-        pipeline1
-        |beam.io.ReadFromText(SOURCE_FILE_PATH_CSV,skip_header_lines=1)
-        |beam.Map(split_function)
-        |beam.Filter(filterCountryData)
-        |beam.Map(groupByDept)
-        |beam.CombinePerKey(sum)
-        |beam.io.WriteToText(TARGET_FOLDER)
+with beam.Pipeline() as p1:
+    pcolletion=(
+        p1
+        | 'Read data from text file' >> beam.io.ReadFromText(SOURCE_FILE_PATH_CSV,skip_header_lines=1)
+        | 'spliting data as , ' >> beam.Map(split_function)
+        | 'filter data for us record '>>beam.Filter(filterCountryData)
+        | 'appending 1 for every record '>>beam.Map(groupByDept)
+        | 'group and suming ' >> beam.CombinePerKey(sum)
+        | 'write result data to file ' >> beam.io.WriteToText(TARGET_FOLDER)
 )
-pipeline1.run()
